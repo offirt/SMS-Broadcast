@@ -1,38 +1,51 @@
 import pandas as pd
 import sys, getopt
+from twilio.rest import Client
 
 
 def main(argv):
-    file, nameColumn, phoneColumn, template, sendReal = parseArgs(argv)
+    file, nameColumn, phoneColumn, template, sendReal, twilioSid, twilioToken, twilioFrom = parseArgs(argv)
 
     rows = pd.read_csv(file)
     rows = rows[[nameColumn, phoneColumn]]
 
+    client = Client(twilioSid, twilioToken)
+
     for index, row in rows.iterrows():
         text = template.replace('<name>', row[nameColumn])
-        sendSms(row[phoneColumn], text, sendReal)
+        sendSms(row[phoneColumn], text, sendReal, client, twilioFrom)
 
 
-def sendSms(phone, text, sendReal):
+def sendSms(phone, text, sendReal, client, twilioFrom):
     print('Sending SMS to {}. text: {}'.format(phone, text))
 
-    # if sendReal == True:
-        # Send SMS.
+    if sendReal:
+        message = client.messages.create(
+            to=phone,
+            from_=twilioFrom,
+            body=text)
+
+        print(message.sid)
+
 
 def parseArgs(argv):
     try:
-        opts, args = getopt.getopt(argv, "hf:t:n:p:s", ["file=", "template=", "name_column=", "phone_column=", "send_real"])
+        opts, args = getopt.getopt(argv, "hf:t:n:p:s:i:o:r:",
+                                   ["file=", "template=", "name_column=", "phone_column=", "send_real", "twilio_sid", "twilio_token", "twilio_from"])
     except getopt.GetoptError:
-        print('sms_broadcast.py -s -f <csv_file> -t <text_template> -n <name_column_name> -p <phone_number_column_name>')
+        printHelp()
         sys.exit(2)
     file = ''
     template = ''
     nameColumn = 'Name'
     phoneColumn = 'Phone number'
     sendReal = False
+    twilioSid = ''
+    twilioToken = ''
+    twilioFrom = ''
     for opt, arg in opts:
         if opt == '-h':
-            print('sms_broadcast.py -s -f <csv_file> -t <text_template> -n <name_column_name> -p <phone_number_column_name>')
+            printHelp()
             sys.exit()
         elif opt in ("-s", "--send_real"):
             sendReal = True
@@ -44,7 +57,19 @@ def parseArgs(argv):
             nameColumn = arg
         elif opt in ("-p", "--phone_column"):
             phoneColumn = arg
-    return file, nameColumn, phoneColumn, template, sendReal
+        elif opt in ("-i", "--twilio_sid"):
+            twilioSid = arg
+        elif opt in ("-o", "--twilio_token"):
+            twilioToken = arg
+        elif opt in ("-r", "--twilio_from"):
+            twilioFrom = arg
+    return file, nameColumn, phoneColumn, template, sendReal, twilioSid, twilioToken, twilioFrom
+
+
+def printHelp():
+    print(
+        'sms_broadcast.py -s -f <csv_file> -t <text_template> -n <name_column_name> ' +
+        '-p <phone_number_column_name> -i <twilio_sid> -o <twilio_token> -r <twilio_from>')
 
 
 if __name__ == "__main__":
