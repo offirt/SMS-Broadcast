@@ -26,12 +26,14 @@ def main(argv):
         elif opt in ("-p", "--phone_column"):
             phoneColumn = arg
 
-        # sendSms(file, template, nameColumn, phoneColumn)
+    sendSms(file, template, nameColumn, phoneColumn)
 
 
 def sendSms(file, template, nameColumn, phoneColumn):
     rows = pd.read_csv(file)
     rows = rows[[nameColumn, phoneColumn]]
+
+    print(rows)
 
 
 if __name__ == "__main__":
