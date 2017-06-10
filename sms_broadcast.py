@@ -13,7 +13,8 @@ def main(argv):
 
     for index, row in rows.iterrows():
         text = template.replace('<name>', row[nameColumn])
-        sendSms(row[phoneColumn], text, sendReal, client, twilioFrom)
+        phone = '+{}'.format(row[phoneColumn])
+        sendSms(phone, text, sendReal, client, twilioFrom)
 
 
 def sendSms(phone, text, sendReal, client, twilioFrom):
@@ -30,8 +31,8 @@ def sendSms(phone, text, sendReal, client, twilioFrom):
 
 def parseArgs(argv):
     try:
-        opts, args = getopt.getopt(argv, "hf:t:n:p:s:i:o:r:",
-                                   ["file=", "template=", "name_column=", "phone_column=", "send_real", "twilio_sid", "twilio_token", "twilio_from"])
+        opts, args = getopt.getopt(argv, "hsf:t:n:p:i:o:r:",
+                                   ["send_real", "file=", "template=", "name_column=", "phone_column=", "twilio_sid", "twilio_token", "twilio_from"])
     except getopt.GetoptError:
         printHelp()
         sys.exit(2)
