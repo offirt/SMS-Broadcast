@@ -102,3 +102,6 @@ ENV/
 
 # IDEA
 .idea/
+
+# test files
+*.csv
